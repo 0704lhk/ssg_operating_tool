@@ -1,0 +1,19 @@
+{
+  "name": "ssg-sales-comparison",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build",
+    "test": "node --test --test-isolation=none tests/data.test.js",
+    "test:browser": "node tests/browser.mjs"
+  },
+  "dependencies": {
+    "xlsx": "0.18.5"
+  },
+  "devDependencies": {
+    "vite": "^7.3.0",
+    "@playwright/test": "^1.56.0"
+  }
+}

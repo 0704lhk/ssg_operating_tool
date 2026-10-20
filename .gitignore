@@ -20,3 +20,58 @@ dist/
 
 # Local generated results
 /results/
+
+# Additional local source and output exclusions
+# Secrets: keep only the placeholder example shareable.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials*.json
+service-account*.json
+
+# Business source files, including the supplied practice inputs.
+/업무원본/
+/원본/
+/data/raw/
+/A_매출비교/*.xlsx
+/B_팝업오픈/*.pdf
+/C_행사준비/*.csv
+/D_화면과연결/*.png
+/E_짧은연습/*.png
+/E_짧은연습/*.jpg
+
+# Generated results and local logs.
+/outputs/
+*.log
+
+# Local practice setup: exclude complete original A-E directories.
+/A_매출비교/
+/B_팝업오픈/
+/C_행사준비/
+/D_화면과연결/
+/E_짧은연습/
+node_modules/
+/results/
+
+# Additional local secrets and authentication material.
+.env.local
+.env*
+!.env.example
+*.pfx
+*.p12
+*.p8
+*.jks
+.npmrc
+.netrc
+.aws/
+.ssh/
+.secrets/
+secrets/
+secrets.*
+credentials/
+credentials.*
+service_account*.json
+id_rsa*
+id_ed25519*
