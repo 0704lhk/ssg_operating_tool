@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f0df">
+  <title>오늘의 간식 룰렛</title>
+  <style>
+    :root { --mint:#a8d8c8; --mint-dark:#559c87; --cream:#fbf7e9; --ink:#35423d; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; display:grid; place-items:center; padding:28px 18px; color:var(--ink); font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif; background:radial-gradient(circle at 50% 18%,#fffdf5 0,#f5f0df 68%,#e9f4ec 100%); }
+    main { width:min(100%,440px); text-align:center; }
+    h1 { margin:0 0 28px; font-size:clamp(26px,7vw,34px); letter-spacing:-.06em; font-weight:800; }
+    .wheel-wrap { position:relative; width:min(76vw,320px); aspect-ratio:1; margin:0 auto 30px; }
+    .pointer { position:absolute; z-index:2; left:50%; top:-12px; transform:translateX(-50%); width:0;height:0;border-left:14px solid transparent;border-right:14px solid transparent;border-top:25px solid #f28c6b; filter:drop-shadow(0 2px 2px #0002); }
+    .wheel { position:absolute;inset:0;width:100%;height:100%; border:9px solid #fffdf5; border-radius:50%; box-shadow:0 12px 28px #52766624, inset 0 0 0 2px #ffffffaa; overflow:hidden; background:conic-gradient(from -30deg,#a8d8c8 0 60deg,#f8df9d 60deg 120deg,#f6b6a5 120deg 180deg,#c5b8e8 180deg 240deg,#f7c98c 240deg 300deg,#b7d9e8 300deg 360deg); }
+    .wheel-rotor { position:absolute;inset:0;transition:transform 4s cubic-bezier(.12,.72,.12,1); }
+    .labels { position:absolute;inset:0; pointer-events:none; }
+    .wheel .labels { inset:0; }
+    .label { position:absolute;left:50%;top:50%;width:74px;margin-left:-37px;margin-top:-13px;font-size:15px;font-weight:750;color:#34433d;text-shadow:0 1px #fff8; }
+    .label:nth-child(1){transform:rotate(0deg) translateY(-105px) rotate(0deg)}
+    .label:nth-child(2){transform:rotate(60deg) translateY(-105px) rotate(-60deg)}
+    .label:nth-child(3){transform:rotate(120deg) translateY(-105px) rotate(-120deg)}
+    .label:nth-child(4){transform:rotate(180deg) translateY(-105px) rotate(-180deg)}
+    .label:nth-child(5){transform:rotate(240deg) translateY(-105px) rotate(-240deg)}
+    .label:nth-child(6){transform:rotate(300deg) translateY(-105px) rotate(-300deg)}
+    .hub { position:absolute;left:50%;top:50%;width:24px;height:24px;transform:translate(-50%,-50%);border:4px solid #fffdf5;border-radius:50%;background:var(--mint-dark);box-shadow:0 2px 5px #0002; }
+    button { border:0;border-radius:14px;padding:15px 34px;background:var(--mint-dark);color:white;font:inherit;font-size:20px;font-weight:800;box-shadow:0 5px 0 #387c68;cursor:pointer;transition:transform .12s,background .2s; }
+    button:hover:not(:disabled){background:#438d78;transform:translateY(-2px)} button:active:not(:disabled){transform:translateY(3px);box-shadow:0 2px 0 #387c68} button:disabled{opacity:.65;cursor:wait}
+    .result { min-height:58px;margin:25px 0 0;padding:13px 18px;border:2px solid #d7e9dc;border-radius:16px;background:#fffdf2;color:#53665d;font-size:18px;font-weight:700; }
+    .result strong { color:#438d78;font-size:22px; }
+    @media(max-width:380px){.label{font-size:13px}.label:nth-child(n){--r:86px}.label:nth-child(1){transform:rotate(0deg) translateY(-86px)}.label:nth-child(2){transform:rotate(60deg) translateY(-86px) rotate(-60deg)}.label:nth-child(3){transform:rotate(120deg) translateY(-86px) rotate(-120deg)}.label:nth-child(4){transform:rotate(180deg) translateY(-86px) rotate(-180deg)}.label:nth-child(5){transform:rotate(240deg) translateY(-86px) rotate(-240deg)}.label:nth-child(6){transform:rotate(300deg) translateY(-86px) rotate(-300deg)}}
+    @media(prefers-reduced-motion:reduce){.wheel-rotor{transition-duration:1s}button{transition:none}}
+  </style>
+</head>
+<body>
+  <main>
+    <h1>오늘의 간식 룰렛</h1>
+    <div class="wheel-wrap" aria-label="간식 룰렛">
+      <div class="pointer" aria-hidden="true"></div>
+      <div class="wheel" aria-hidden="true">
+       <div class="wheel-rotor" id="wheel">
+        <div class="labels">
+        <span class="label">마카롱</span><span class="label">아이스크림</span><span class="label">붕어빵</span><span class="label">쿠키</span><span class="label">과일</span><span class="label">요거트</span>
+        </div>
+       </div>
+      </div><div class="hub" aria-hidden="true"></div>
+    </div>
+    <button id="spin" type="button">돌려보기</button>
+    <p class="result" id="result" role="status" aria-live="polite">버튼을 눌러 오늘의 간식을 골라보세요 🍪</p>
+  </main>
+  <script>
+    const snacks = ['마카롱','아이스크림','붕어빵','쿠키','과일','요거트'];
+    const wheel = document.querySelector('#wheel');
+    const button = document.querySelector('#spin');
+    const result = document.querySelector('#result');
+    let rotation = 0, spinning = false;
+    button.addEventListener('click', () => {
+      if (spinning) return;
+      spinning = true;
+      button.disabled = true;
+      result.textContent = '빙글빙글… 간식을 고르는 중이에요!';
+      const winner = Math.floor(Math.random() * snacks.length);
+      const slice = 360 / snacks.length;
+      const center = winner * slice + slice / 2;
+      const target = (360 - center) % 360;
+      rotation += 360 * 5 + ((target - rotation % 360 + 360) % 360);
+      wheel.style.transform = `rotate(${rotation}deg)`;
+      wheel.addEventListener('transitionend', function done(event) {
+        if (event.propertyName !== 'transform') return;
+        wheel.removeEventListener('transitionend', done);
+        result.innerHTML = `오늘의 간식은 <strong>${snacks[winner]}</strong>! 🎉`;
+        button.disabled = false;
+        spinning = false;
+      });
+    });
+  </script>
+</body>
+</html>

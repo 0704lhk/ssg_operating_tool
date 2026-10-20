@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#163e30">
+  <meta name="description" content="교육용 가상 매출을 비교하고 보고 양식으로 저장하는 운영 대시보드">
+  <title>모먼트룸 · 매출 비교</title><link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <header class="app-header"><div class="header-inner"><a class="brand" href="#sales"><span class="brand-mark">m</span><span>moment room<small>OPERATIONS WORKSPACE</small></span></a><span class="teaching-badge">교육용 가상 데이터</span></div></header>
+  <main class="workspace">
+    <section class="intro"><p class="eyebrow">SALES & OPERATIONS</p><p>세 채널의 실적을 같은 기준으로 비교하고 보고서로 이어갑니다.</p></section>
+    <nav class="tabs" aria-label="운영 메뉴"><button class="tab active" id="tab-sales" aria-controls="sales" aria-selected="true" data-tab="sales">매출</button><button class="tab" id="tab-tasks" aria-controls="tasks" aria-selected="false" data-tab="tasks">행사 준비 <small>2단계</small></button><button class="tab" id="tab-weather" aria-controls="weather" aria-selected="false" data-tab="weather">날씨 <small>2단계</small></button></nav>
+    <section id="sales" aria-labelledby="tab-sales">
+      <div class="section-heading"><div><p class="eyebrow">01 / SALES OVERVIEW</p><h2>매출 비교</h2></div><div class="heading-actions"><span id="data-status" role="status">자료를 불러오는 중</span><button id="export-button" class="button primary" disabled>↓ 보고서 저장</button></div></div>
+      <details class="load-log" id="load-log"><summary>파일 불러오기 내역 <span id="log-count">0</span></summary><ul id="load-messages" aria-live="polite"></ul></details>
+      <section class="panel filter-panel" aria-label="조회 조건"><div class="panel-heading"><div><h3>조회 조건</h3><p>선택한 조건이 지표·차트·상세 표·보고서에 함께 적용됩니다.</p></div><button id="reset-filters" class="text-button">조건 초기화 ↺</button></div><div class="filter-grid">
+        <label>점포<select id="filter-store"><option value="">전체 점포</option></select></label><label>채널<select id="filter-channel"><option value="">전체 채널</option></select></label><label>기간 · 기준주<select id="filter-week"><option value="">전체 기간</option></select></label><label>브랜드<select id="filter-brand"><option value="">전체 브랜드</option></select></label><label>장르<select id="filter-genre"><option value="">전체 장르</option></select></label>
+      </div></section>
+      <div class="kpi-grid"><article class="kpi-card featured"><p>총 매출 <span>↗</span></p><strong id="kpi-revenue">—</strong><small>선택 조건 기준 <b id="kpi-records">0건</b></small></article><article class="kpi-card"><p>총 목표 <span>◎</span></p><strong id="kpi-target">—</strong><small>매출 목표 합계 · 단위 만원</small></article><article class="kpi-card"><p>목표 달성률 <span>◌</span></p><strong id="kpi-rate">—</strong><small id="kpi-rate-note">합계 매출 ÷ 합계 목표</small></article></div>
+      <section class="panel chart-panel" aria-labelledby="chart-title"><div class="panel-heading"><div><h3 id="chart-title">점포별 매출 비교</h3><p>선택 조건에 포함된 매출 합계</p></div><span class="unit-label">단위 · 만원</span></div><div id="comparison-chart" class="comparison-chart" aria-label="점포별 매출"></div><div class="chart-foot">● 매출</div></section>
+      <section class="panel records-panel" aria-labelledby="detail-title"><div class="panel-heading"><div><h3 id="detail-title">실적 상세</h3><p id="records-caption">자료를 불러오는 중입니다.</p></div><label class="upload-button">＋ 엑셀 추가<input id="excel-input" type="file" accept=".xlsx,.xls" multiple disabled aria-label="실적 엑셀 추가"></label></div><p class="memo-notice" id="memo-notice">메모는 record_id별로 이 브라우저에만 저장됩니다. 팀과 공유되지 않으며, 보고서 저장 시 포함됩니다.</p><div class="table-wrap"><table><thead><tr><th>기준주 / ID</th><th>점포</th><th>채널</th><th>브랜드 / 장르</th><th class="numeric">매출</th><th class="numeric">목표</th><th class="numeric">달성률</th><th>메모</th><th>원본 출처</th></tr></thead><tbody id="sales-table-body"><tr><td colspan="9" class="empty-cell">자료를 불러오는 중입니다.</td></tr></tbody></table></div><div class="table-bottom"><span id="page-summary">—</span><div class="pagination"><button id="prev-page" aria-label="이전 페이지" disabled>‹</button><span id="page-label">1 / 1</span><button id="next-page" aria-label="다음 페이지" disabled>›</button></div></div></section>
+    </section>
+    <section id="tasks" class="placeholder panel" aria-labelledby="tab-tasks" hidden><span>02 / NEXT PHASE</span><h2>행사 준비</h2><p>2단계 구현 범위입니다. 행사 준비 항목과 마감 현황은 다음 단계에서 연결합니다.</p></section>
+    <section id="weather" class="placeholder panel" aria-labelledby="tab-weather" hidden><span>02 / NEXT PHASE</span><h2>날씨</h2><p>2단계 구현 범위입니다. 예제 날씨와 실시간 모드 연결은 다음 단계에서 제공합니다.</p></section>
+    <footer><span>moment room · 운영 대시보드</span><span>교육용 가상 자료 · 매출 단위 만원</span></footer>
+  </main><div id="toast" class="toast" role="status" aria-live="polite"></div><script src="./app.js" defer></script>
+</body></html>
