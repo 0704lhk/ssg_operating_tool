@@ -7,7 +7,7 @@ function navigate(tab) { activeTab = tab; history.replaceState(null, '', `#${tab
 
 const app = document.querySelector('#app');
 const STORAGE_KEY = 'ssg-sales-notes-v1';
-const state = { rows: [], filters: { stores: ['예제A점'], channel: '', week: '' }, notes: {}, busy: false, messages: [], sort: { key: 'record_id', direction: 1 } };
+const state = { sample: false, rows: [], filters: { stores: ['예제A점'], channel: '', week: '' }, notes: {}, busy: false, messages: [], sort: { key: 'record_id', direction: 1 } };
 let storageAvailable = true;
 try { const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); if (saved && typeof saved === 'object' && !Array.isArray(saved)) state.notes = saved; } catch { storageAvailable = false; }
 const fmt = value => new Intl.NumberFormat('ko-KR', { maximumFractionDigits: 2 }).format(value);
@@ -38,7 +38,7 @@ function render() {
       <header class="topbar"><span>운영 데스크 <span class="crumb">/</span> <b>매출 비교</b></span><span class="private-badge"><span class="status-dot"></span> 개인 작업 공간</span></header>
       <div class="content">
         <section class="page-heading"><div><div class="eyebrow">SALES OVERVIEW</div><h1>매출 비교</h1><p>흩어진 실적을 한곳에 모으고, 같은 기준으로 비교하세요.</p></div><label class="button primary upload-button" for="file-input"><span>＋</span> 실적 파일 불러오기<input id="file-input" type="file" accept=".xlsx,.xls" multiple ${state.busy ? 'disabled' : ''}></label></section>
-        <section class="import-strip" aria-label="입력 자료"><div class="import-icon">▤</div><div><b>${state.rows.length ? `원본 ${fmt(state.rows.length)}행 연결됨` : '영업 · 온라인 · 팝업 원본을 연결하세요'}</b><p>${state.rows.length ? esc([...new Set(state.rows.map(row => row._sourceFile))].join(' · ')) : '01_영업실적.xlsx, 02_온라인실적.xlsx, 03_팝업실적.xlsx를 선택합니다.'}</p></div><span class="local-label">기기에서 처리</span></section>
+        <section class="import-strip" aria-label="입력 자료"><div class="import-icon">▤</div><div><b>${state.rows.length ? `${state.sample ? '교육용 예제' : '원본'} ${fmt(state.rows.length)}행 연결됨` : '영업 · 온라인 · 팝업 원본을 연결하세요'}</b><p>${state.rows.length ? esc([...new Set(state.rows.map(row => row._sourceFile))].join(' · ')) : '01_영업실적.xlsx, 02_온라인실적.xlsx, 03_팝업실적.xlsx를 선택합니다.'}</p></div><span class="local-label">기기에서 처리</span></section>
         ${state.messages.length ? `<div class="messages" aria-live="polite">${state.messages.map(message => `<div class="message ${message.type}" role="${message.type === 'error' ? 'alert' : 'status'}">${esc(message.text)}</div>`).join('')}</div>` : ''}
         <section class="panel filter-panel" aria-label="조회 필터"><div class="filter-top"><h2>조회 조건</h2><button id="reset-filters" class="text-button" ${state.busy ? 'disabled' : ''}>↺ 초기화</button></div><div class="filters"><fieldset class="store-field"><legend>점포 <span>복수 선택</span></legend><div class="store-options"><label class="check-chip ${state.filters.stores.length === 0 ? 'selected' : ''}"><input type="checkbox" id="all-stores" ${state.filters.stores.length === 0 ? 'checked' : ''} ${state.busy ? 'disabled' : ''}>전체</label>${(stores.length ? stores : ['예제A점']).map(store => `<label class="check-chip ${state.filters.stores.includes(store) ? 'selected' : ''}"><input type="checkbox" name="store" value="${esc(store)}" ${state.filters.stores.includes(store) ? 'checked' : ''} ${state.busy ? 'disabled' : ''}>${esc(store)}</label>`).join('')}</div></fieldset><label class="select-field">채널<select id="channel-filter" ${state.busy ? 'disabled' : ''}><option value="">전체 채널</option>${unique('채널').map(value => `<option ${state.filters.channel === value ? 'selected' : ''}>${esc(value)}</option>`).join('')}</select></label><label class="select-field">기준주<select id="week-filter" ${state.busy ? 'disabled' : ''}><option value="">전체 기준주</option>${unique('기준주').map(value => `<option ${state.filters.week === value ? 'selected' : ''}>${esc(value)}</option>`).join('')}</select></label></div><div class="filter-summary"><span>${esc(conditionText())}</span><span>자료 확인일 ${dates.length ? esc(dates.length === 1 ? dates[0] : `${dates[0]} ~ ${dates.at(-1)}`) : '—'} <span class="divider">|</span> 조회 <b>${fmt(rows.length)}</b>건</span></div></section>
         <section class="metrics" aria-label="매출 요약"><article class="metric"><div class="metric-label">총 매출 <span class="metric-symbol">↗</span></div><div class="metric-value" id="sales-total">${rows.length ? fmt(sum.sales) : '—'}<small>만원</small></div><p>선택한 조건의 매출 합계</p></article><article class="metric"><div class="metric-label">총 목표 <span class="metric-symbol muted">◎</span></div><div class="metric-value" id="target-total">${rows.length ? fmt(sum.target) : '—'}<small>만원</small></div><p>목표 차이 <b class="${sum.delta >= 0 ? 'positive' : 'negative'}">${rows.length ? `${sum.delta > 0 ? '+' : ''}${fmt(sum.delta)}만원` : '—'}</b></p></article><article class="metric accent"><div class="metric-label">목표 달성률 <span class="metric-symbol">◔</span></div><div class="metric-value" id="rate-total">${rows.length ? pct(sum.rate) : '—'}</div><p>합계 매출 ÷ 합계 목표 ${rows.length && sum.target === 0 ? '· 목표 0으로 계산 제외' : ''}</p></article></section>
@@ -74,8 +74,10 @@ async function importFiles(files) {
   for (const file of files) {
     try {
       const parsed = data.parseWorkbook(await file.arrayBuffer(), file.name);
-      const result = data.mergeRows(state.rows, parsed.rows);
-      const added = result.rows.length - state.rows.length;
+      const existing = state.sample ? [] : state.rows;
+      const result = data.mergeRows(existing, parsed.rows);
+      const added = result.rows.length - existing.length;
+      state.sample = false;
       state.rows = result.rows;
       state.messages.push({ type: 'success', text: `${file.name}: ${fmt(added)}행 추가${result.duplicateCount ? ` · 동일 ID·내용 중복 ${fmt(result.duplicateCount)}행 제외` : ''}` });
     } catch (error) { state.messages.push({ type: 'error', text: `${file.name}: ${error.message || error} · 이 파일은 반영하지 않았습니다. 기존 정상 자료는 유지됩니다.` }); }
@@ -145,3 +147,18 @@ function bind() {
 window.salesApp = { getState: () => ({ ...state, filtered: filtered() }), importFiles, setFilters, setNote, exportReport: reportBytes };
 render();
 
+
+// Public fictional snapshot only; raw input workbooks are never deployed.
+fetch('/api/sales-sample').then(async response => {
+  if (!response.ok) throw new Error('예제 실적 응답 오류');
+  const payload = await response.json();
+  if (state.rows.length || state.busy) return;
+  if (!Array.isArray(payload.rows) || payload.rows.length !== 480) throw new Error('예제 실적 480행 검증 실패');
+  const merged = data.mergeRows([], payload.rows);
+  if (merged.rows.length !== 480) throw new Error('예제 실적 ID 검증 실패');
+  state.rows = merged.rows; state.sample = true; state.filters.stores = [];
+  state.messages = [{ type: 'success', text: '교육용 가상 실적 480행을 불러왔습니다. 전체 점포·전체 채널·전체 기준주 기준입니다. 직접 파일을 불러오면 예제 대신 선택한 파일을 비교합니다.' }];
+  render();
+}).catch(() => {
+  if (!state.rows.length) { state.messages = [{ type: 'error', text: '교육용 예제 실적을 불러오지 못했습니다. 실적 파일 불러오기를 사용하거나 서버를 확인하세요.' }]; render(); }
+});
